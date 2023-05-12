@@ -15,6 +15,7 @@ function addItem(e) {
     return;
   } else {
     const li = newItem(inputValue);
+    saveData(inputValue);
     itemsList.appendChild(li);
   }
   inputItem.value = "";
@@ -29,6 +30,7 @@ function newItem(txt) {
   btn.appendChild(i);
   const li = createEle("li");
   li.textContent = txt;
+
   li.appendChild(btn);
   return li;
 }
@@ -45,6 +47,7 @@ function delItem(e) {
   const targetElement = e.target;
   if (targetElement.className === "fa-solid fa-xmark") {
     targetElement.parentElement.parentElement.remove();
+    checkLi(targetElement);
   }
   const list = document.querySelectorAll("li");
   if (list.length === 0) {
@@ -59,6 +62,7 @@ function delAllItems() {
   while (itemsList.firstChild) {
     itemsList.firstChild.remove();
   }
+  removeAllData();
   clearBtn.style.display = "none";
   filter.style.display = "none";
 }
@@ -78,7 +82,58 @@ function filterList() {
 }
 
 // Events
+window.addEventListener("DOMContentLoaded", showDataList);
 form.addEventListener("submit", addItem);
 itemsList.addEventListener("click", delItem);
 clearBtn.addEventListener("click", delAllItems);
 filter.addEventListener("input", filterList);
+
+// save the data in local storage
+function saveData(txt) {
+  const arr = testData();
+  arr.push(txt);
+  localStorage.setItem("item", JSON.stringify(arr));
+}
+
+// Test data is there
+function testData() {
+  const getItems = JSON.parse(localStorage.getItem("item"));
+  let dtArr;
+  if (getItems === null) {
+    dtArr = [];
+  } else {
+    dtArr = getItems;
+  }
+  return dtArr;
+}
+
+// Show the data onload
+function showDataList() {
+  const getItems = JSON.parse(localStorage.getItem("item"));
+  if (getItems !== null) {
+    getItems.forEach((item) => {
+      const li = newItem(item);
+      itemsList.appendChild(li);
+      clearBtn.style.display = "block";
+      filter.style.display = "block";
+    });
+  }
+}
+
+// Clear all data from local storage
+function removeAllData() {
+  localStorage.removeItem("item");
+}
+
+// Delete data also from local storage
+function checkLi(ele) {
+  const items = JSON.parse(localStorage.getItem("item"));
+  // const li = document.querySelectorAll("li");
+  const parent = ele.parentElement.parentElement;
+  items.forEach((i, index) => {
+    if (i === parent.textContent) {
+      items.splice(index, 1);
+    }
+    localStorage.setItem("item", JSON.stringify(items));
+  });
+}
